@@ -26,4 +26,4 @@ local.properties
 *.jks
 *.keystore
 
-./.idea
+.idea/
