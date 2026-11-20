@@ -64,6 +64,30 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    private var hasStartedListening = false
+
+    override fun onResume() {
+        super.onResume()
+
+        if (!hasStartedListening) {
+            hasStartedListening = true
+
+            window.decorView.post {
+                startListening()
+            }
+        }
+    }
+
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        if (intent.action == Intent.ACTION_ASSIST) {
+            startListening()
+        }
+    }
+
     private fun openYouTube() {
         val intent = Intent(
             Intent.ACTION_VIEW,
@@ -86,6 +110,24 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    private fun startListening() {
+        val intent = Intent(
+            RecognizerIntent.ACTION_RECOGNIZE_SPEECH
+        ).apply {
+            putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            putExtra(
+                RecognizerIntent.EXTRA_PROMPT,
+                "What can I help you with?"
+            )
+        }
+
+        speechLauncher.launch(intent)
+    }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,12 +140,12 @@ class MainActivity : ComponentActivity() {
 
                 if (result != TextToSpeech.LANG_MISSING_DATA &&
                     result != TextToSpeech.LANG_NOT_SUPPORTED) {
-                    tts.speak(
-                        "Eyooo Minh, what's up?",
-                        TextToSpeech.QUEUE_FLUSH,
-                        null,
-                        "greeting"
-                    )
+//                    tts.speak(
+//                        "Eyooo Minh, what's up?",
+//                        TextToSpeech.QUEUE_FLUSH,
+//                        null,
+//                        "greeting"
+//                    )
                 }
             }
         }
@@ -113,22 +155,7 @@ class MainActivity : ComponentActivity() {
                 Column {
                     Text("Your personal assistant")
 
-                    Button(onClick = {
-                        val intent = Intent(
-                            RecognizerIntent.ACTION_RECOGNIZE_SPEECH
-                        ).apply {
-                            putExtra(
-                                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-                            )
-                            putExtra(
-                                RecognizerIntent.EXTRA_PROMPT,
-                                "What can I help you with?"
-                            )
-                        }
-
-                        speechLauncher.launch(intent)
-                    }) {
+                    Button(onClick = { startListening() }) {
                         Text("Start listening")
                     }
 
